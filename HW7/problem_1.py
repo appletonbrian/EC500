@@ -27,7 +27,8 @@ c2 = 133e-9 #lambda_p
 c3 = 12000e-9 #lambda_gamma
 
 #Define array for wavelength. 0.1nm resolution.
-wavelength = np.linspace(290e-9, 1010e-9, 7201)
+#wavelength = np.linspace(290e-9, 1010e-9, 7201)
+wavelength = np.linspace(90e-9, 1010e-9, 9201)
 
 #Calculate the complex relative dielectric constant using the given eqn. (2)
 e_r = c1 - 1/c2**2 / (1/wavelength**2 + 1j/(c3*wavelength))
@@ -69,16 +70,20 @@ er_im = np.imag(e_r)
 
 #Calculate the scattering cross-section using eqn. (17)
 sigma_sca = (8*pi/3)*((2*pi/wavelength)**4)*(R**6)*(((er_re-e_water)**2+er_im**2)/((er_re+2*e_water)**2+er_im**2))**2
+peak_sca_wavelength = wavelength[sigma_sca.argmax()]
+print("The peak scattering cross-section occurs at wavelength ", peak_sca_wavelength*1e9, " nm.")
 
 #Calculate the absorption cross-section using eqn. (19)
 sigma_abs = (4*pi*2*pi/wavelength*R**3)*((er_im*e_water)/((er_re+2*e_water)**2+er_im**2))
+peak_abs_wavelength = wavelength[sigma_abs.argmax()]
+print("The peak absorption cross-section occurs at wavelength ", peak_abs_wavelength*1e9, " nm.")
 
 #Calculate the extinction cross-section using eqn. (14)
 sigma_ext = sigma_sca+sigma_abs
 
 #Find the resonant wavelength, as the wavelength that maximizes sigma_ext
 resonant_index = np.argmax(sigma_ext)
-print("Resonant wavelength of sigma_ext is ", wavelength[resonant_index]*1e9, " nm.")
+print("Resonant wavelength of sigma_ext is ", wavelength[resonant_index]*1e9, " nm. Peak height here is ", sigma_ext[resonant_index]*1e18, " nm^2.")
 
 #Calculate the Q factor, as the resonant wavelength divided by the FWHM
 half_max = sigma_ext[resonant_index]/2
@@ -128,12 +133,17 @@ plt.clf()
 plt.cla()
 plt.close()
 
+#Tell me where the minimum is in the scattering cross-section
+index_minimum = sigma_sca.argmin()
+wavelength_min = wavelength[index_minimum]*1e9
+print("Hey! Minimum in scattering occurs at ", wavelength_min, " nm.")
+
 #Plot the scattering cross section
 ax1 = plt.subplot(211)
 plt.semilogy(wavelength*1e9, sigma_sca*1e18)
 plt.suptitle("Scattering and absorption cross-sections for $10nm$ Au NP", fontsize=18)
 plt.ylabel("Scattering cross-section, $nm^{2}$", fontsize=12)
-ax1.set_xlim(xmin=295, xmax=1005)
+ax1.set_xlim(xmin=95, xmax=1005)
 ax1.set_ylim(ymin=1e-7, ymax=1e2)
 plt.grid(True)
 
@@ -141,7 +151,7 @@ plt.grid(True)
 ax2 = plt.subplot(212)
 plt.semilogy(wavelength*1e9, sigma_abs*1e18)
 plt.ylabel("Absorption cross-section, $nm^{2}$", fontsize=12)
-ax2.set_xlim(xmin=295, xmax=1005)
+ax2.set_xlim(xmin=95, xmax=1005)
 ax2.set_ylim(ymin=1e-7, ymax=1e2)
 plt.grid(True)
 plt.xlabel("Wavelength, $nm$", fontsize=14)
